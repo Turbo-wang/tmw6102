@@ -3,9 +3,9 @@ from os.path import isfile, join
 import base64
 import gzip
 import sys
-reload(sys)
+
 sys.path.append("../")
-sys.setdefaultencoding('utf-8')
+
 import configs.config
 from collections import namedtuple
 
@@ -16,6 +16,8 @@ file_eng = configs.config.CORPUS_ENG
 file_fr = configs.config.CORPUS_FR
 
 def extract_text():
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     dict_url_text = {}
     #outputfile = open('extract_text.out', 'w')
     files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('lett') or f.endswith('gz'))]
