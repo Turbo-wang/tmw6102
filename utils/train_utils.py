@@ -50,10 +50,16 @@ def get_para_text():
             url_pair = pair.split()
             en_url = url_pair[0]
             fr_url = url_pair[1]
-            par_en.write(dict_url_text.setdefault(en_url, None))
-            par_en.write('\n')
-            par_fr.write(dict_url_text.setdefault(fr_url, None))
-            par_fr.write('\n')
+            if dict_url_text.has_key(en_url):
+                par_en.write(dict_url_text.setdefault(en_url, None))
+                par_en.write('\n')
+            else:
+                print en_url
+            if dict_url_text.has_key(fr_url):
+                par_fr.write(dict_url_text.setdefault(fr_url, None))
+                par_fr.write('\n')
+            else:
+                print fr_url
     par_en.close()
     par_fr.close()
 
