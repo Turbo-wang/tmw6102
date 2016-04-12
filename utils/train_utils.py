@@ -3,7 +3,9 @@ from os.path import isfile, join
 import base64
 import gzip
 import sys
+reload(sys)
 sys.path.append("../")
+sys.setdefaultencoding('utf-8')
 import configs.config
 from collections import namedtuple
 
@@ -15,7 +17,7 @@ file_fr = configs.config.CORPUS_FR
 
 def extract_text():
     dict_url_text = {}
-    outputfile = open('extract_text.out', 'w')
+    #outputfile = open('extract_text.out', 'w')
     files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('lett') or f.endswith('gz'))]
     
     wf_eng = open(join(corpora_dir,file_eng), 'w')
@@ -24,11 +26,17 @@ def extract_text():
         print file
         for line in decode_file(join(corpora_dir, file)):
             if line.lang == 'fr':
-                dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
+                if isinstance(line.text, unicode):
+                    dict_url_text[line.url] = line.text
+                else:
+                    dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
                 # wf_fr.write(line.text.encode('utf-8'))
                 # wf_fr.write('\n')
             elif line.lang == 'en':
-                dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
+                if isinstance(line.text, unicode):
+                    dict_url_text[line.url] = line.text
+                else:
+                    dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
                 # wf_eng.write(line.text.encode('utf-8'))
                 # wf_eng.write('\n')
             else:
@@ -50,13 +58,21 @@ def get_para_text():
             url_pair = pair.split()
             en_url = url_pair[0]
             fr_url = url_pair[1]
-            if dict_url_text.has_key(en_url):
-                par_en.write(dict_url_text.setdefault(en_url, None))
+            text = dict_url_text.setdefault(en_url, None)
+            if text is not None:
+                #if isinstance(text, unicode):
+                par_en.write(text)
+                #else:
+                #    par_en.write(text.decode('utf-8'))
                 par_en.write('\n')
             else:
                 print en_url
-            if dict_url_text.has_key(fr_url):
-                par_fr.write(dict_url_text.setdefault(fr_url, None))
+            text = dict_url_text.setdefault(fr_url, None)
+            if text is not None:
+                #if isinstance(text, unicode):
+                par_fr.write(text)
+                #else:
+                #    par_en.write(text.decode('utf-8'))
                 par_fr.write('\n')
             else:
                 print fr_url
