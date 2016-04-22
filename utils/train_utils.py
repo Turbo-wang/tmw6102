@@ -3,10 +3,13 @@ from os.path import isfile, join
 import base64
 import gzip
 import sys
-
-sys.path.append("../")
-
+import numpy
+import os
+# sys.path.append("../")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import configs.config
+import lib.model_cnn
+
 from collections import namedtuple
 
 Page = namedtuple("Page", "url, html, text, mime_type, encoding, lang")
@@ -15,15 +18,18 @@ corpora_dir = configs.config.CORPORA_DIR
 file_eng = configs.config.CORPUS_ENG
 file_fr = configs.config.CORPUS_FR
 
-def extract_text():
+
+
+
+def extract_text(write_file = 0):
     reload(sys)
     sys.setdefaultencoding('utf-8')
     dict_url_text = {}
     #outputfile = open('extract_text.out', 'w')
     files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('lett') or f.endswith('gz'))]
-    
-    wf_eng = open(join(corpora_dir,file_eng), 'w')
-    wf_fr = open(join(corpora_dir,file_fr), 'w')    
+    if write_file == 1:
+        wf_eng = open(join(corpora_dir,file_eng), 'w')
+        wf_fr = open(join(corpora_dir,file_fr), 'w')    
     for file in files_list:
         print file
         for line in decode_file(join(corpora_dir, file)):
@@ -32,27 +38,44 @@ def extract_text():
                     dict_url_text[line.url] = line.text
                 else:
                     dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
-                # wf_fr.write(line.text.encode('utf-8'))
-                # wf_fr.write('\n')
+                if write_file == 1:
+                    wf_fr.write(line.text.encode('utf-8'))
+                    wf_fr.write('\n')
             elif line.lang == 'en':
                 if isinstance(line.text, unicode):
                     dict_url_text[line.url] = line.text
                 else:
                     dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
-                # wf_eng.write(line.text.encode('utf-8'))
-                # wf_eng.write('\n')
+                if write_file == 1:
+                    wf_eng.write(line.text.encode('utf-8'))
+                    wf_eng.write('\n')
             else:
                 continue
-
-    wf_eng.close()
-    wf_fr.close()
+    if write_file == 1:
+        wf_eng.close()
+        wf_fr.close()
     print 'ok'
     return dict_url_text
 
+def get_doc_by_url(url):
+    #dict_url = extract_text()
+
+    #url_pair = pair.split()
+    #en_url = url_pair[0]
+    #fr_url = url_pair[1]
+    text = dict_url_text.setdefault(url, None)
+    if text is not None:
+        #if isinstance(text, unicode):
+        text = text.replace('\n','\t')
+    else:
+        #print en_url
+        pass
+    return text
+
 def get_para_text():
-    par_en = open('para.en','w')
-    par_fr = open('para.fr','w')
-    dict_url_text = extract_text()
+    par_en = open('../data/para.en','w')
+    par_fr = open('../data/para.fr','w')
+    
     with open('../data/train.pairs') as file:
         pairs = file.readlines()
         for pair in pairs:
@@ -60,24 +83,37 @@ def get_para_text():
             url_pair = pair.split()
             en_url = url_pair[0]
             fr_url = url_pair[1]
-            text = dict_url_text.setdefault(en_url, None)
-            if text is not None:
+            en_text = get_doc_by_url(en_url)
+            fr_text = get_doc_by_url(fr_url)
+            if en_text is not None:
                 #if isinstance(text, unicode):
+                text = text.replace('\n','\t')
+                par_en.write('1')
+                par_en.write('\t')
+                par_en.write(en_url)
+                par_en.write('\t')
                 par_en.write(text)
                 #else:
                 #    par_en.write(text.decode('utf-8'))
                 par_en.write('\n')
             else:
-                print en_url
-            text = dict_url_text.setdefault(fr_url, None)
-            if text is not None:
+                #print en_url
+                pass
+            if fr_text is not None:
                 #if isinstance(text, unicode):
+                text = text.replace('\n','\t')
+                par_fr.write('1')
+                par_fr.write('\t')
+                par_fr.write(fr_url)
+                par_fr.write('\t')
+
                 par_fr.write(text)
                 #else:
                 #    par_en.write(text.decode('utf-8'))
                 par_fr.write('\n')
             else:
-                print fr_url
+                #print fr_url
+                pass
     par_en.close()
     par_fr.close()
 
@@ -102,5 +138,21 @@ def decode_file(file):
         p = Page(url, html, text, mime, enc, lang)
         yield p
 
+def calculate_vector_text(text):
+    eng_vector_dict = lib.load_wordVec_mem('../data/envec.txt')
+    fr_vector_dict = lib.load_wordVec_mem('../data/frvec.txt')
+    vector = np.zeros()
+    # for word in text:
+
+dict_url_text = extract_text()
 if __name__ == '__main__':
     get_para_text()
+    # text_url_dict = extract_text()
+    
+    # with open('../data/train.pairs') as file:
+    #     pairs = file.readlines()
+    #     for pair in pairs:
+    #         eng_url , fr_url = pair.split('\t')
+    #         eng_text = text_url_dict[eng_url]
+    #         fr_text = text_url_dict[fr_url]
+    #         
