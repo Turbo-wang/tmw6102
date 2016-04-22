@@ -1,3 +1,4 @@
 *.lett
+*.out
 *.decode
 *.gz
