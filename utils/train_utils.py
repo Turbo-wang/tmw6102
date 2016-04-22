@@ -5,6 +5,9 @@ import gzip
 import sys
 import numpy
 import os
+import random
+import re
+
 # sys.path.append("../")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import configs.config
@@ -25,6 +28,8 @@ def extract_text(write_file = 0):
     reload(sys)
     sys.setdefaultencoding('utf-8')
     dict_url_text = {}
+    dict_url_en = []
+    dict_url_fr = []
     #outputfile = open('extract_text.out', 'w')
     files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('lett') or f.endswith('gz'))]
     if write_file == 1:
@@ -36,16 +41,20 @@ def extract_text(write_file = 0):
             if line.lang == 'fr':
                 if isinstance(line.text, unicode):
                     dict_url_text[line.url] = line.text
+                    dict_url_en.append(line.url)
                 else:
                     dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
+                    dict_url_en.append(line.url.encode('utf-8'))
                 if write_file == 1:
                     wf_fr.write(line.text.encode('utf-8'))
                     wf_fr.write('\n')
             elif line.lang == 'en':
                 if isinstance(line.text, unicode):
                     dict_url_text[line.url] = line.text
+                    dict_url_en.append(line.url)
                 else:
                     dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
+                    dict_url_fr.append(line.url.encode('utf-8'))
                 if write_file == 1:
                     wf_eng.write(line.text.encode('utf-8'))
                     wf_eng.write('\n')
@@ -55,7 +64,7 @@ def extract_text(write_file = 0):
         wf_eng.close()
         wf_fr.close()
     print 'ok'
-    return dict_url_text
+    return dict_url_text, dict_url_en, dict_url_fr
 
 def get_doc_by_url(url):
     #dict_url = extract_text()
@@ -138,15 +147,52 @@ def decode_file(file):
         p = Page(url, html, text, mime, enc, lang)
         yield p
 
+
+def compose_train_data():
+    train_data = open('../data/train_data.pairs','w')
+    url_num = len(dict_url_en)
+
+    re_obj = re.compile('((http|https)://(\w+\\.?)+?/)')
+
+
+
+    with open('../data/train.pairs') as train_file:
+        lines = train_file.readlines()
+        index_range = []
+
+        #get_index_range_for_domain(lines):
+        last = None
+        for i, line in enumerate(lines):
+            pairs = line.strip().split()
+            domain = re_obj.findall(pairs[0])
+            if not last == domain:
+                index_range.append(i)
+                last = domain
+        print index_range
+
+        # for line in lines[:1300]:
+        #     train_data.write('1')
+        #     train_data.write('\t')
+        #     train_data.write(line)
+        #     train_data.write('\n')
+
+        #     train_data.write('0')
+        #     train_data.write('\t')
+        #     train_data.write(line[0])
+        #     train_data.write('\t')
+        #     index = random.randint(0,url_num)
+        #     train_data.write()
+
 def calculate_vector_text(text):
     eng_vector_dict = lib.load_wordVec_mem('../data/envec.txt')
     fr_vector_dict = lib.load_wordVec_mem('../data/frvec.txt')
     vector = np.zeros()
     # for word in text:
 
-dict_url_text = extract_text()
+dict_url_text, dict_url_en, dict_url_fr = extract_text()
 if __name__ == '__main__':
-    get_para_text()
+    #get_para_text()
+    compose_train_data()
     # text_url_dict = extract_text()
     
     # with open('../data/train.pairs') as file:
