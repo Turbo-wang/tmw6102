@@ -5,8 +5,8 @@ from scipy.spatial.distance import cosine
 def load_wordVec_mem(vector_file):
     vector_dict = {}
     with open(vector_file) as vector:
-        wordslist = vector.readlines()
-        for word in wordslist:
+        # wordslist = vector.readlines()
+        for word in vector:
             tmp = word.split()
             vector_dict[tmp[0]] = tmp[1:]
     return vector_dict
