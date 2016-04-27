@@ -11,7 +11,7 @@ import re
 # sys.path.append("../")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import configs.config
-import lib.model_cnn
+# import lib.model_cnn
 
 from collections import namedtuple
 
@@ -177,11 +177,12 @@ def decode_file(file):
 
         p = Page(url, html, text, mime, enc, lang)
         yield p
+    f.close()
 
 
 def compose_train_data():
     train_data = open('../data/train_data.pairs','w')
-    dev_data = open('../data/dev_data.pairs','w')
+    # dev_data = open('../data/dev_data.pairs','w')
 
     #re_obj = re.compile('((http|https)://(\w+\\.?)+?/)')
     re_obj = re.compile('((?<=http://)(\w+-?\w\\.?)+?(?=/))')
@@ -191,50 +192,7 @@ def compose_train_data():
     with open('../data/train.pairs') as train_file:
         lines = train_file.readlines()
 
-        # for line in lines[:1300]:
-        #     line = line.strip().split()
-        #     print line
-        #     domain = re_obj.findall(line[0])
-
-        #     print domain[0][0]
-        #     domainfile = str(domain[0][0]) + '.lett.gz'
-        #     dict_domain, dict_url_domain_en, dict_url_domain_fr = extract_domain(domainfile)
-        #     train_data.write('1')
-        #     train_data.write('\t')
-        #     train_data.write(line[0])
-        #     train_data.write('\t')
-        #     train_data.write(line[1])
-        #     train_data.write('\n')
-
-        #     train_data.write('0')
-        #     train_data.write('\t')
-        #     train_data.write(line[0])
-        #     train_data.write('\t')
-        #     error_url = line[0]
-        #     url_num = len(dict_url_domain_en)
-        #     while True:
-        #         index = random.randint(0,url_num-1)
-        #         error_url = dict_url_domain_en[index]
-        #         if error_url != line[0]:
-        #             break
-        #     train_data.write(error_url)
-        #     train_data.write('\n')
-
-        #     train_data.write('0')
-        #     train_data.write('\t')
-        #     error_url = line[1]
-        #     url_num = len(dict_url_domain_fr)
-        #     while True:
-        #         index = random.randint(0,url_num-1)
-        #         error_url = dict_url_domain_fr[index]
-        #         if error_url != line[1]:
-        #             break
-        #     train_data.write(error_url)
-        #     train_data.write('\t')
-        #     train_data.write(line[1])
-        #     train_data.write('\n')
-
-        for line in lines[1300:]:
+        for line in lines[:1300]:
             line = line.strip().split()
             print line
             domain = re_obj.findall(line[0])
@@ -242,17 +200,17 @@ def compose_train_data():
             print domain[0][0]
             domainfile = str(domain[0][0]) + '.lett.gz'
             dict_domain, dict_url_domain_en, dict_url_domain_fr = extract_domain(domainfile)
-            dev_data.write('1')
-            dev_data.write('\t')
-            dev_data.write(line[0])
-            dev_data.write('\t')
-            dev_data.write(line[1])
-            dev_data.write('\n')
+            train_data.write('1')
+            train_data.write('\t')
+            train_data.write(line[0])
+            train_data.write('\t')
+            train_data.write(line[1])
+            train_data.write('\n')
 
-            dev_data.write('0')
-            dev_data.write('\t')
-            dev_data.write(line[0])
-            dev_data.write('\t')
+            train_data.write('0')
+            train_data.write('\t')
+            train_data.write(line[0])
+            train_data.write('\t')
             error_url = line[0]
             url_num = len(dict_url_domain_en)
             while True:
@@ -260,11 +218,11 @@ def compose_train_data():
                 error_url = dict_url_domain_en[index]
                 if error_url != line[0]:
                     break
-            dev_data.write(error_url)
-            dev_data.write('\n')
+            train_data.write(error_url)
+            train_data.write('\n')
 
-            dev_data.write('0')
-            dev_data.write('\t')
+            train_data.write('0')
+            train_data.write('\t')
             error_url = line[1]
             url_num = len(dict_url_domain_fr)
             while True:
@@ -272,10 +230,53 @@ def compose_train_data():
                 error_url = dict_url_domain_fr[index]
                 if error_url != line[1]:
                     break
-            dev_data.write(error_url)
-            dev_data.write('\t')
-            dev_data.write(line[1])
-            dev_data.write('\n')
+            train_data.write(error_url)
+            train_data.write('\t')
+            train_data.write(line[1])
+            train_data.write('\n')
+
+        # for line in lines[1300:]:
+        #     line = line.strip().split()
+        #     print line
+        #     domain = re_obj.findall(line[0])
+
+        #     print domain[0][0]
+        #     domainfile = str(domain[0][0]) + '.lett.gz'
+        #     dict_domain, dict_url_domain_en, dict_url_domain_fr = extract_domain(domainfile)
+        #     dev_data.write('1')
+        #     dev_data.write('\t')
+        #     dev_data.write(line[0])
+        #     dev_data.write('\t')
+        #     dev_data.write(line[1])
+        #     dev_data.write('\n')
+
+        #     dev_data.write('0')
+        #     dev_data.write('\t')
+        #     dev_data.write(line[0])
+        #     dev_data.write('\t')
+        #     error_url = line[0]
+        #     url_num = len(dict_url_domain_en)
+        #     while True:
+        #         index = random.randint(0,url_num-1)
+        #         error_url = dict_url_domain_en[index]
+        #         if error_url != line[0]:
+        #             break
+        #     dev_data.write(error_url)
+        #     dev_data.write('\n')
+
+        #     dev_data.write('0')
+        #     dev_data.write('\t')
+        #     error_url = line[1]
+        #     url_num = len(dict_url_domain_fr)
+        #     while True:
+        #         index = random.randint(0,url_num-1)
+        #         error_url = dict_url_domain_fr[index]
+        #         if error_url != line[1]:
+        #             break
+        #     dev_data.write(error_url)
+        #     dev_data.write('\t')
+        #     dev_data.write(line[1])
+        #     dev_data.write('\n')
 
 
 def calculate_vector_text(text):
