@@ -97,8 +97,10 @@ def extract_text(write_file = 0):
     print 'extract all file ok'
     return dict_url_text, dict_url_en, dict_url_fr
 
+
+
 def get_doc_by_url(url):
-    #dict_url = extract_text()
+    
 
     #url_pair = pair.split()
     #en_url = url_pair[0]
@@ -108,8 +110,8 @@ def get_doc_by_url(url):
         #if isinstance(text, unicode):
         text = text.replace('\n','\t')
     else:
-        #print en_url
-        pass
+        print url
+
     return text
 
 def get_para_text():
@@ -125,35 +127,40 @@ def get_para_text():
             fr_url = url_pair[1]
             en_text = get_doc_by_url(en_url)
             fr_text = get_doc_by_url(fr_url)
+            par_en.write(en_url)
+            par_en.write('\n')
             if en_text is not None:
                 if isinstance(en_text, unicode):
-                    text = text.replace('\n','\t')
+                    # text = en_text.replace('\n','\t')
                 # par_en.write('1')
                 # par_en.write('\t')
                 # par_en.write(en_url)
                 # par_en.write('\t')
-                    par_en.write(text)
+                    par_en.write(en_text)
                 else:
-                    par_en.write(text.decode('utf-8'))
+                    par_en.write(en_text.decode('utf-8'))
                 par_en.write('\n')
             else:
                 #print en_url
-                pass
+                par_en.write('\n')
+
+            par_fr.write(fr_url)
+            par_fr.write('\n')
             if fr_text is not None:
-                if isinstance(text, unicode):
-                    text = text.replace('\n','\t')
+                if isinstance(fr_text, unicode):
+                    # text = text.replace('\n','\t')
                 # par_fr.write('1')
                 # par_fr.write('\t')
                 # par_fr.write(fr_url)
                 # par_fr.write('\t')
 
-                    par_fr.write(text)
+                    par_fr.write(fr_text)
                 else:
-                    par_en.write(text.decode('utf-8'))
+                    par_fr.write(fr_text.decode('utf-8'))
                 par_fr.write('\n')
             else:
-                #print fr_url
-                pass
+                par_fr.write('\n')
+    
     par_en.close()
     par_fr.close()
 
@@ -284,11 +291,11 @@ def calculate_vector_text(text):
     fr_vector_dict = lib.load_wordVec_mem('../data/frvec.txt')
     vector = np.zeros()
     # for word in text:
-
+dict_url_text, dict_url_en, dict_url_fr = extract_text()
 # dict_url_text, dict_url_en, dict_url_fr = extract_text()
 if __name__ == '__main__':
     #get_para_text()
-    compose_train_data()
+    get_para_text()
     # text_url_dict = extract_text()
     
     # with open('../data/train.pairs') as file:
