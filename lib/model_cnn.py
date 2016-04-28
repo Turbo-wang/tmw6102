@@ -51,7 +51,7 @@ def prapare_train():
     #         if text is not None:
     #             #if isinstance(text, unicode):
     #             text = text.replace('\n','\t')
-    #             text = process_sentence.tokenize(text)
+    #             text = process_sentence.tokenize_text(text)
     #         else:
     #             #print en_url
     #             text = []
@@ -66,7 +66,7 @@ def prapare_train():
     #         if text is not None:
     #             #if isinstance(text, unicode):
     #             text = text.replace('\n','\t')
-    #             text = process_sentence.tokenize(text)
+    #             text = process_sentence.tokenize_text(text)
     #         else:
     #             #print en_url
     #             text = []
@@ -88,7 +88,7 @@ def prapare_train():
             if text is not None:
                 #if isinstance(text, unicode):
                 text = text.replace('\n','\t')
-                text = process_sentence.tokenize(text)
+                text = process_sentence.tokenize_text(text)
             else:
                 #print en_url
                 text = []
@@ -103,7 +103,7 @@ def prapare_train():
             if text is not None:
                 #if isinstance(text, unicode):
                 text = text.replace('\n','\t')
-                text = process_sentence.tokenize(text)
+                text = process_sentence.tokenize_text(text)
             else:
                 #print en_url
                 text = []

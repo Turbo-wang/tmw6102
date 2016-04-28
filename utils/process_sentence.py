@@ -3,11 +3,11 @@ import train_utils
 import math
 # import matplotlib.pyplot as plt
 
-def tokenize(text, length = 100):
+def tokenize_text(text, length = 100000):
     _tokenizer = nltk.tokenize.RegexpTokenizer(pattern=r'[\w\$]+|[^\w\s]')
     tokens = _tokenizer.tokenize(text.lower())
-    if len(tokens) > length:
-        tokens = tokens[:100]
+    # if len(tokens) > length:
+    #     tokens = tokens[:length]
     return tokens
 
 def statistic_web():
@@ -38,29 +38,36 @@ def analysis():
     flag = False
     with open('../data/length_list.out') as length_list:
         for length in length_list:
-           
-            if flag == False:
+            length = length.split()
+            # if flag == False:
                 # print math.log10(float(length))
-                length_en_list.append(length)
+            length_en_list.append(length[0])
                 # length_en_list.append(math.log10(float(length)))
-                flag = True
-            else:
-                length_fr_list.append(length)
+                # flag = True
+            # else:
+            length_fr_list.append(length[1])
                 # length_fr_list.append(math.log10(float(length)))
-                flag = False
+                # flag = False
     x = [x for x in range(len(length_en_list))]
     dislist  = []
+    count = 0
+    alpha = 0.4
     for en,fr in zip(length_en_list, length_fr_list):
+        en = en.strip()
+        fr = fr.strip()
         dis = abs(int(en) - int(fr))
-        
-        dis_for = int(en) * 1
-        dislist.append(dis - dis_for)
-    plt.plot(x,dislist,'r')
-    plt.show()
+        dis_for = (int(en) * alpha + int(fr) * alpha) /2
+        if (dis > dis_for):
+            print int(en),int(fr)
+            count += 1
+        dislist.append(dis)
+    print count
+    # plt.plot(x,dislist,'r')
+    # plt.show()
 
 
 
 
 
 if __name__ == "__main__":
-    statistic_web()
+    analysis()

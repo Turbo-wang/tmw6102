@@ -109,10 +109,30 @@ def decode_file(file):
         yield p
     f.close()
 
-
-
+def get_translation_for_url():
+    text_list = []
+    url = " "
+    url_last = "http://1d-aquitaine.com/"
+    en_text_trans = open('../data/test/en_text_trans.out','w')
+    with open('../data/test/translations.test/url2text.en') as en_lines:
+        for line in en_lines:
+            content = line.split()
+            url_new = content[0]
+            text = '\t'.join(content[1:])
+            if url_last == url_new:
+                text_list.append(text)
+            else:
+                # print url_last
+                en_text_trans.write(url_last)
+                en_text_trans.write('\n')
+                en_text_trans.write('\t'.join(text_list))
+                en_text_trans.write('\n')
+                url_last = url_new
+                text_list = []
+    en_text_trans.close()
 
 if __name__ == '__main__':
     # extract_all()
     # print 'extract_all'
-    generate_pairs('www.conidia.fr.lett')
+    # generate_pairs('www.conidia.fr.lett')
+    get_translation_for_url()
