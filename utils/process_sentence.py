@@ -3,7 +3,7 @@ import train_utils
 import math
 # import matplotlib.pyplot as plt
 
-def tokenize_text(text, length = 100000):
+def tokenize_text(text, length = 30):
     _tokenizer = nltk.tokenize.RegexpTokenizer(pattern=r'[\w\$]+|[^\w\s]')
     tokens = _tokenizer.tokenize(text.lower())
     # if len(tokens) > length:

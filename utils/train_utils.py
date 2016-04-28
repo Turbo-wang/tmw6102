@@ -83,6 +83,23 @@ def get_translation_for_url():
                 text_list = []
     en_text_trans.close()
 
+def load_translation(file_name):
+    url_dict = {}
+    domain  = file_name[:-3]
+    with open('../data/en_train_trans.out') as en_train_trans:
+        flag = False
+        while(True):
+           
+            line_url = en_train_trans.readline()
+            line_text = en_train_trans.readline()
+            if re.search(domain, line_url):
+                url_dict[line_url] = process_sentence.tokenize_text(line_text)
+                flag = True
+            elif flag == True:
+                break
+    return url_dict
+
+
 def bleu_test():
     files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('lett') or f.endswith('gz'))]
     match_url = []
@@ -92,20 +109,18 @@ def bleu_test():
             match_url.append(pair)
     predict_file = open('../data/predict_unlimit.pairs','w')
 
-    for file_name in files_list:    
+    for file_name in files_list[:1]: 
+        url_text_trans = load_translation(file_name)   
         dict_url_text, dict_url_en, dict_url_fr = extract_domain(file_name)
         en_text_list = []
         print 'extract ok'
         reference_list = []
-                # en_text_list.append(text)
-        
-        
         time_start = time.time()
         for url in dict_url_fr:
             pos = -1
             score_list = []
-            text = process_sentence.tokenize_text(dict_url_text[url])
-            for en_url in dict_url_en:
+            text = url_text_trans[url]
+            for en_text in dict_url_en:
                 en_text = process_sentence.tokenize_text(dict_url_text[en_url])
                 score_list.append(sentence_bleu(en_text, text))
             pos = score_list.index(max(score_list))
@@ -381,7 +396,7 @@ def calculate_vector_text(text):
 # dict_url_text, dict_url_en, dict_url_fr = extract_text()
 # 
 if __name__ == '__main__':
-    get_translation_for_url()
+    bleu_test()
     # bleu_test()
     # text_url_dict = extract_text()
     
