@@ -172,7 +172,7 @@ def train_model():
     model.fit(X_train, Y_train,
           batch_size=batch_size,
           nb_epoch=nb_epoch,
-          validation__split = 0.2)
+          validation_split = 0.2)
     print 'ok'
 
 def get_nn_model():
