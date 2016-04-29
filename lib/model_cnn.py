@@ -152,8 +152,18 @@ def prapare_train():
 
 def train_model():
     # (X_train, Y_train, X_test, Y_test) = prapare_train()
+    X_ = []
     with open('../data/train_matrix.out') as train_file:
         X_train = json.load(train_file)
+        for x in X_train:
+            a = len(x)
+            print a/2
+            x1 = x[:a/2]
+            x2 = x[a/2:]
+            x3 = []
+            x3.append(x1)
+            x3.append(x2)
+            X_.append(x3)
     # X_test = pickle.load('../data/test_matrix.out')
     Y_train = [1,0,0]*3
     # Y_test = [1,0,0]*3
@@ -169,7 +179,7 @@ def train_model():
     #       nb_epoch=nb_epoch,
     #       validation_data=(X_test, Y_test))
 #2
-    model.fit(X_train, Y_train,
+    model.fit(X_, Y_train,
           batch_size=batch_size,
           nb_epoch=nb_epoch,
           validation_split = 0.2)
