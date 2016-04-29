@@ -11,11 +11,11 @@ def load_wordVec_mem(vector_file):
             vector_dict[tmp[0]] = tmp[1:]
     return vector_dict
 
-def distence_two_vect(word1, word2, method= 'Cosine'):
+def distance_two_vect(word1, word2, method= 'Cosine'):
     # method = method
     vect1 = np.asarray(word1, dtype='float64')
     vect2 = np.asarray(word2, dtype='float64')
-    distence = 0
+    distance = 0
     if method == 'Cosine':
         distence = cosine(vect1, vect2)
     elif method == 'Jaccard':
@@ -26,5 +26,5 @@ def distence_two_vect(word1, word2, method= 'Cosine'):
         pass
     else:
         raise NameError("no such method:"+method)
-    return distence
+    return distance
 

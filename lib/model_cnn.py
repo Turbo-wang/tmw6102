@@ -12,7 +12,8 @@ from keras.layers import Merge
 from keras import backend as K
 import sys
 import os
-import pickle
+# import pickle
+import re
 import json
 import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -30,56 +31,69 @@ filter_length = 2
 hidden_dims = 250
 nb_epoch = 1
 
+re_obj = re.compile('[a-zA-Z]')
+
 def prapare_train():
-    en_vec_dict = wordVec.load_wordVec_mem('../data/envec.txt')
-    fr_vec_dict = wordVec.load_wordVec_mem('../data/frvec.txt')
+    en_vec_dict = wordVec.load_wordVec_mem('../data/envec2.txt')
+    fr_vec_dict = wordVec.load_wordVec_mem('../data/frvec2.txt')
     dict_url_text, dict_url_en, dict_url_fr = utils.train_utils.extract_text()
     
-    # train_file = open('../data/train_matrix.out','w')
-    test_file = open('../data/test_matrix.out','w')
+    train_file = open('../data/train_matrix.out','w')
+    # test_file = open('../data/test_matrix.out','w')
     
     X_train = []
     Y_train = []
     X_test = []
     Y_test = []
-    # with open('../data/train_data.pairs') as train_lines:
-    #     for line in train_lines:
-    #         line.split()
-    #         Y_train.append(line[0])
+    count_num = 0
+    with open('../data/train_data.pairs') as train_lines:
+        for line in train_lines:
+            line.split()
+            Y_train.append(line[0])
             
-    #         text = dict_url_text.setdefault(line[1], None)
-    #         if text is not None:
-    #             #if isinstance(text, unicode):
-    #             text = text.replace('\n','\t')
-    #             text = process_sentence.tokenize_text(text)
-    #         else:
-    #             #print en_url
-    #             text = []
-    #         en_text_list = text
-    #         x_ = []
-    #         for word in en_text_list:
-    #             x_.append(en_vec_dict.setdefault(word, [0]*200))
-    #         if len(en_text_list) < 10000:
-    #             for i in range(10000-len(en_text_list)):
-    #                 x_.append([0]*200)
-    #         text = dict_url_text.setdefault(line[2], None)
-    #         if text is not None:
-    #             #if isinstance(text, unicode):
-    #             text = text.replace('\n','\t')
-    #             text = process_sentence.tokenize_text(text)
-    #         else:
-    #             #print en_url
-    #             text = []
-    #         fr_text_list = text
-    #         for word in fr_text_list:
-    #             x_.append(fr_vec_dict.setdefault(word, [0]*200))
-    #         if len(fr_text_list) < 10000:
-    #             for i in range(10000-len(fr_text_list)):
-    #                 x_.append([0]*200)
-    #         X_train.append(x_)
+            text = dict_url_text.setdefault(line[1], None)
+            if text is not None:
+                #if isinstance(text, unicode):
+                text = text.replace('\n','\t')
+                text = process_sentence.tokenize_text(text)
+            else:
+                #print en_url
+                text = []
+            en_text_list = text
+            x_ = []
+            count = 0
+            for word in en_text_list:
+                if re_obj.search(word) and count < 1000:
+                    x_.append(en_vec_dict.setdefault(word, [0]*200))
+                    count += 1
+            if len(x_) < 1000:
+                for i in range(1000-len(x_)):
+                    x_.append([0]*200)
+            text = dict_url_text.setdefault(line[2], None)
+            if text is not None:
+                #if isinstance(text, unicode):
+                text = text.replace('\n','\t')
+                text = process_sentence.tokenize_text(text)
+            else:
+                #print en_url
+                text = []
+            fr_text_list = text
+            # x_ = []
+            count = 0
+            for word in fr_text_list:
+                if re_obj.search(word) and count < 1000:
+                    x_.append(en_vec_dict.setdefault(word, [0]*200))
+                    count += 1
+            if len(x_) < 2000:
+                for i in range(2000-len(fr_text_list)):
+                    x_.append([0]*200)
+            if count_num > 3:
+                break
+            count_num += 1
+            X_train.append(x_)
 
-    # pickle.dump(X_train, train_file)
-    print 'pickle train ok'
+    json.dump(X_train, train_file,encoding='utf-8')
+    print 'json train ok'
     with open('../data/dev_data.pairs') as train_lines:
         for line in train_lines:
             line.split()
@@ -94,10 +108,13 @@ def prapare_train():
                 text = []
             en_text_list = text
             x_ = []
+            count = 0
             for word in en_text_list:
-                x_.append(en_vec_dict.setdefault(word, [0]*200))
-            if len(en_text_list) < 10000:
-                for i in range(10000-len(en_text_list)):
+                if re_obj.search(word) and count < 1000:
+                    x_.append(en_vec_dict.setdefault(word, [0]*200))
+                    count += 1
+            if len(x_) < 1000:
+                for i in range(1000-len(x_)):
                     x_.append([0]*200)
             text = dict_url_text.setdefault(line[2], None)
             if text is not None:
@@ -108,32 +125,35 @@ def prapare_train():
                 #print en_url
                 text = []
             fr_text_list = text
+            # x_ = []
+            count = 0
             for word in fr_text_list:
-                x_.append(fr_vec_dict.setdefault(word, [0]*200))
-            if len(fr_text_list) < 10000:
-                for i in range(10000-len(fr_text_list)):
+                if re_obj.search(word) and count < 1000:
+                    x_.append(en_vec_dict.setdefault(word, [0]*200))
+                    count += 1
+            if len(x_) < 2000:
+                for i in range(2000-len(fr_text_list)):
                     x_.append([0]*200)
+            if count_num > 6:
+                break
+            count_num += 1
             X_test.append(x_)
     print 'start json'
     print time.localtime( time.time() )
-    json_test_file = open('../data/json_test_matrix.out','w')
+    json_test_file = open('../data/test_matrix.out','w')
     json.dump(X_test,json_test_file, encoding='utf-8')
     print time.localtime( time.time() )
 
-    print 'start pickle'
-    print time.localtime( time.time() )
-    pickle.dump(X_test, test_file)
-    print time.localtime( time.time() )
-    test_file.close()
+    train_file.close()
 
 
-    print 'pickle test ok'
+    print 'json test ok'
     # return (X_train, Y_train, X_test, Y_test)
 
 def train_model():
     # (X_train, Y_train, X_test, Y_test) = prapare_train()
-    with open('../data/train_matrix.out') as train_file:
-        X_train = pickle.load(train_file)
+    # with open('../data/train_matrix.out') as train_file:
+    #     X_train = pickle.load(train_file)
     # X_test = pickle.load('../data/test_matrix.out')
     Y_train = [1,0,0]*1300
     Y_test = [1,0,0]*324
@@ -202,4 +222,4 @@ def get_nn_model():
     return final_model
 
 if __name__ == '__main__':
-    train_model()
+    prapare_train()

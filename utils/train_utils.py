@@ -1,19 +1,26 @@
+from __future__ import print_function
 from os import listdir
 from os.path import isfile, join
 import base64
 import gzip
 import sys
+# reload(sys)
+# sys.setdefaultencoding('utf8')
 import numpy
 import os
 import random
 import re
 import time
-
+import numpy as np
+from scipy.spatial.distance import cosine
+re_obj = re.compile('[a-zA-Z]')
 # sys.path.append("../")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import configs.config
 # import lib.model_cnn
+from lib import wordVec
 import process_sentence
+
 from nltk.translate.bleu_score import corpus_bleu, sentence_bleu
 
 from collections import namedtuple
@@ -44,6 +51,7 @@ def extract_domain(file):
                 dict_url_text[line.url] = line.text
                 dict_url_en.append(line.url)
             else:
+                print(line.text)
                 dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
                 dict_url_en.append(line.url.encode('utf-8'))
         elif line.lang == 'fr':
@@ -51,6 +59,7 @@ def extract_domain(file):
                 dict_url_text[line.url] = line.text
                 dict_url_fr.append(line.url)
             else:
+                print(line.text)
                 dict_url_text[line.url.encode('utf-8')] = line.text.encode('utf-8')
                 dict_url_fr.append(line.url.encode('utf-8'))
         else:
@@ -85,61 +94,207 @@ def get_translation_for_url():
 
 def load_translation(file_name):
     url_dict = {}
-    domain  = file_name[:-3]
-    with open('../data/en_train_trans.out') as en_train_trans:
+    domain  = file_name[:-8]
+    print(domain)
+    with open('../data/en_train_trans.out','r') as en_train_trans:
         flag = False
-        while(True):
-           
-            line_url = en_train_trans.readline()
-            line_text = en_train_trans.readline()
-            if re.search(domain, line_url):
-                url_dict[line_url] = process_sentence.tokenize_text(line_text)
-                flag = True
-            elif flag == True:
-                break
+        lines = en_train_trans.readlines()
+        for url, text in zip(lines[::2],lines[1::2]):
+            url = url.strip()
+            text = text.strip()
+            # text = text.replace('\t',' ')
+            # line_url = en_train_trans.readline()
+            # # print line_url
+            # line_text = en_train_trans.readline()
+            if re.search(domain, url) != None:
+                url_dict[url] = text
+            #     flag = True
+            #     # print line_url, files_name
+            # elif flag == True:
+            #     break
+    # print url_dict
     return url_dict
 
+def test():
+    
+    en_url = []
+    en_url.append(enurl1)
+    en_url.append(enurl2)
+    en_url.append(enurl3)
+    frurl = 'http://www.krn.org/fr/106.aspx'
+    file_name = 'www.krn.org.lett.gz'
+    url_text_trans = load_translation(file_name)  
+    dict_url_text, dict_url_en, dict_url_fr = extract_domain(file_name)
+    fr_text = url_text_trans[frurl]
+    # fr_text = process_sentence.tokenize_text(fr_text)
+    for enurl in en_url:
+        en_text = dict_url_text[enurl]
+        en_text = process_sentence.tokenize_text(en_text)
+        print(sentence_bleu(en_text,fr_text))
+
+def vector_test():
+    en_vector_dict = wordVec.load_wordVec_mem('../data/envec2.txt')
+    fr_vector_dict = wordVec.load_wordVec_mem('../data/frvec2.txt')
+    files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('lett') or f.endswith('gz'))]
+    match_url = []
+    train_pair = []
+    count = 0
+    with open('../data/train.pairs','r') as pairs:
+        for pair in pairs:
+            train_pair.append(pair.strip())
+            match_url += pair.strip().split()
+    predict_file = open('../data/predict_unlimit.pairs','w')
+    url_set = set(match_url)
+    
+    alpha = 0.35
+    unk_vec_en = en_vector_dict['unknown']
+    unk_vec_fr = fr_vector_dict['(unk)']
+    count = 0
+    for file_name in files_list[:1]: 
+        file_name = 'www.krn.org.lett.gz'
+        dict_url_text, dict_url_en, dict_url_fr = extract_domain(file_name)
+        
+        for fr_url in dict_url_fr:
+            distance_list = []
+            for en_url in dict_url_en:
+                en_text = dict_url_text[en_url]
+                en_length = len(en_text.strip().split())
+                fr_text = dict_url_text[fr_url]
+                fr_length = len(fr_text.strip().split())
+
+                dis = abs(en_length - fr_length)
+                dis_for = fr_length * alpha
+                if (dis_for < dis):
+                    continue
+
+                en_text = process_sentence.tokenize_text(en_text)
+                fr_text = process_sentence.tokenize_text(fr_text)
+
+                en_web_vec = np.zeros(200)
+                en_web_vec_length = len(en_text)
+                for text in en_text:
+                    vec = en_vector_dict.setdefault(text,unk_vec_en)
+                    vec = np.asarray(vec, dtype='float32')
+                    en_web_vec += vec
+                    en_web_vec = np.divide(en_web_vec, float(en_web_vec_length))
+                # print(en_web_vec)
+                fr_web_vec = np.zeros(200)
+                fr_web_vec_length = len(fr_text)
+                for text in fr_text:
+                    vec = fr_vector_dict.setdefault(text,unk_vec_fr)
+                    vec = np.asarray(vec, dtype='float32')
+                    fr_web_vec += vec
+                    fr_web_vec = np.divide(fr_web_vec, float(fr_web_vec_length))
+                # print(fr_web_vec)
+                
+                distance = cosine(en_web_vec,fr_web_vec)
+                print(distance)
+                tmp = []
+                url_pair = en_url + '    ' + fr_url
+                tmp.append(url_pair)
+                tmp.append(distance)
+                distance_list.append(tmp)
+                predict_file.write(url_pair)
+                predict_file.write('\t')
+                predict_file.write(str(distance))
+                predict_file.write('\n')
+            distance_list = sorted(distance_list, key=lambda d:d[1])
+            pre = distance_list[0][0]
+            if pre in match_url:
+                count +=1
+                
+            print(distance_list)
+
+
+def get_sentence_vec(text):
+    pass
 
 def bleu_test():
     files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('lett') or f.endswith('gz'))]
     match_url = []
+    train_pair = []
     count = 0
-    with open('../data/train.pairs') as pairs:
+    with open('../data/train.pairs','r') as pairs:
         for pair in pairs:
-            match_url.append(pair)
+            train_pair.append(pair.strip())
+            match_url += pair.strip().split()
     predict_file = open('../data/predict_unlimit.pairs','w')
-
+    url_set = set(match_url)
+    
+    alpha = 0.35
     for file_name in files_list[:1]: 
-        url_text_trans = load_translation(file_name)   
+        file_name = 'www.krn.org.lett.gz'
+        url_text_trans = load_translation(file_name)  
+        
         dict_url_text, dict_url_en, dict_url_fr = extract_domain(file_name)
         en_text_list = []
-        print 'extract ok'
+        print('extract ok')
         reference_list = []
-        time_start = time.time()
+        
+
         for url in dict_url_fr:
+            time_start = time.time()
+            # if url in url_set:
+            #     continue
             pos = -1
             score_list = []
-            text = url_text_trans[url]
-            for en_text in dict_url_en:
-                en_text = process_sentence.tokenize_text(dict_url_text[en_url])
-                score_list.append(sentence_bleu(en_text, text))
-            pos = score_list.index(max(score_list))
-            if pos >= len(dict_url_en):
-                print "pos error at", url,'\t',en_url
-                continue
-            if pos < 0:
-                print 'pos < 0 at', url,'\t',en_url
-            en_url_pred = dict_url_en[pos]
-            pre = str(en_url_pred) + '\t' + str(url)
-            predict_file.write(pre)
-            predict_file.write('\n')
-            if pre in match_url:
-                count +=1
-        time_end = time.time()
-        print (time_end - time_start),'for',file_name,'\t',count
-    predict_file.close()
-    print count
+            text = url_text_trans.setdefault(url, None)
+            fr_length = len(text.strip().split())
+            text = process_sentence.tokenize_text(text)
+            for en_url in dict_url_en:
+                # if en_url in url_set:
+                #     continue
+                en_text = dict_url_text[en_url]
 
+                en_length = len(en_text.strip().split())
+
+                dis = abs(en_length - fr_length)
+                dis_for = fr_length * alpha
+                if (dis_for < dis) or text == None:
+                    continue
+                en_text = process_sentence.tokenize_text(en_text)
+                # print "en_text", text
+                if len(en_text) != 0 and len(text) != 0:
+                    url_pair = en_url+'    '+url
+                    print('computing')
+
+                    score = sentence_bleu(text,en_text)
+                    tmp = []
+                    tmp.append(url_pair)
+                    tmp.append(score)
+                    score_list.append(tmp)
+            if len(score_list) != 0:
+                score_list = sorted(score_list, key=lambda d:d[1],reverse = True)
+                print(score_list)
+                # pre = []
+                for score in score_list[:5]:
+                    pre = score[0]
+                    score = score[1]
+                    print(pre,'\tbleu', score)
+                    predict_file.write(pre)
+                    predict_file.write('\n')
+                    # if pre in match_url:
+                        # count +=1
+            time_end = time.time()
+            print((time_end - time_start),'for',url,'\t',count)
+    predict_file.close()
+    print(count)
+
+def cal():
+    count = 0
+    with open('../data/predict_unlimit.pairs') as pre:
+        with open('../data/train.pairs') as ans:
+            for urls in pre:
+                urls = urls.split()
+                en_url = urls[0]
+                fr_url = urls[1]
+                for ans_urls in ans:
+                    ans_urls = ans_urls.split()
+                    en_ans = ans_urls[0]
+                    fr_ans = ans_urls[1]
+                    if en_url == en_ans and fr_url == fr_ans:
+                        count += 1
+    print(count)
 
 def extract_text(write_file = 0):
     reload(sys)
@@ -148,12 +303,12 @@ def extract_text(write_file = 0):
     dict_url_en = []
     dict_url_fr = []
     #outputfile = open('extract_text.out', 'w')
-    files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('lett') or f.endswith('gz'))]
+    files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('.lett') or f.endswith('.gz'))]
     if write_file == 1:
         wf_eng = open(join(corpora_dir,file_eng), 'w')
         wf_fr = open(join(corpora_dir,file_fr), 'w')    
     for file in files_list:
-        # print file
+        print(file)
         for line in decode_file(join(corpora_dir, file)):
             if line.lang == 'fr':
                 if isinstance(line.text, unicode):
@@ -180,7 +335,7 @@ def extract_text(write_file = 0):
     if write_file == 1:
         wf_eng.close()
         wf_fr.close()
-    print 'extract all file ok'
+    print('extract all file ok')
     return dict_url_text, dict_url_en, dict_url_fr
 
 
@@ -196,7 +351,7 @@ def get_doc_by_url(url, dict_url_text):
         # text = text.replace('\n','\t')
         pass
     else:
-        print url
+        print(url)
 
     return text
 
@@ -222,47 +377,7 @@ def get_para_text():
 
     par_en.close()
     par_fr.close()
-        # pairs = file.readlines()
-        # for pair in pairs:
-        #     print pair
-        #     url_pair = pair.split()
-        #     en_url = url_pair[0]
-        #     fr_url = url_pair[1]
-        #     en_text = get_doc_by_url(en_url)
-        #     fr_text = get_doc_by_url(fr_url)
-        #     par_en.write(en_url)
-        #     par_en.write('\n')
-        #     if en_text is not None:
-        #         if isinstance(en_text, unicode):
-        #             # text = en_text.replace('\n','\t')
-        #         # par_en.write('1')
-        #         # par_en.write('\t')
-        #         # par_en.write(en_url)
-        #         # par_en.write('\t')
-        #             par_en.write(en_text)
-        #         else:
-        #             par_en.write(en_text.decode('utf-8'))
-        #         par_en.write('\n')
-        #     else:
-        #         #print en_url
-        #         par_en.write('\n')
-
-        #     par_fr.write(fr_url)
-        #     par_fr.write('\n')
-        #     if fr_text is not None:
-        #         if isinstance(fr_text, unicode):
-        #             # text = text.replace('\n','\t')
-        #         # par_fr.write('1')
-        #         # par_fr.write('\t')
-        #         # par_fr.write(fr_url)
-        #         # par_fr.write('\t')
-
-        #             par_fr.write(fr_text)
-        #         else:
-        #             par_fr.write(fr_text.decode('utf-8'))
-        #         par_fr.write('\n')
-        #     else:
-        #         par_fr.write('\n')
+     
     
 
 
@@ -277,6 +392,7 @@ def decode_file(file):
     else:
         f = open(fh)
     for line in f:
+        # print(line.split())
         lang, mime, enc, url, html, text = line.split("\t")
 
         html = base64.b64decode(html)
@@ -303,10 +419,10 @@ def compose_train_data():
 
         for line in lines[:1300]:
             line = line.strip().split()
-            print line
+            print(line)
             domain = re_obj.findall(line[0])
 
-            print domain[0][0]
+            print(domain[0][0])
             domainfile = str(domain[0][0]) + '.lett.gz'
             dict_domain, dict_url_domain_en, dict_url_domain_fr = extract_domain(domainfile)
             train_data.write('1')
@@ -396,7 +512,8 @@ def calculate_vector_text(text):
 # dict_url_text, dict_url_en, dict_url_fr = extract_text()
 # 
 if __name__ == '__main__':
-    bleu_test()
+    vector_test()
+    cal()
     # bleu_test()
     # text_url_dict = extract_text()
     

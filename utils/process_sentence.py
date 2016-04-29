@@ -1,14 +1,24 @@
-import nltk.tokenize
+from __future__ import print_function
+from nltk.tokenize import word_tokenize
 import train_utils
 import math
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+from nltk.tokenize import word_tokenize
 # import matplotlib.pyplot as plt
 
-def tokenize_text(text, length = 30):
-    _tokenizer = nltk.tokenize.RegexpTokenizer(pattern=r'[\w\$]+|[^\w\s]')
-    tokens = _tokenizer.tokenize(text.lower())
-    # if len(tokens) > length:
-    #     tokens = tokens[:length]
-    return tokens
+def tokenize_text(text, length = 1000):
+    # _tokenizer = nltk.tokenize.RegexpTokenizer('\w')
+    tokens = word_tokenize(text.lower())
+    if len(tokens) > length:
+        tokens = tokens[:length]
+    tokens_ = []
+    for word in tokens:
+        if re_obj.search(word):
+            tokens_.append(word)
+    return tokens_
 
 def statistic_web():
     #dict_url = train_utils.extract_text()
@@ -17,7 +27,7 @@ def statistic_web():
     with open('../data/train.pairs') as train_file:
         # lines = train_file.readlines()
         for line in train_file:
-            print line
+            print(line)
             pairs = line.strip().split()
             en_url = pairs[0]
             fr_url = pairs[1]
@@ -58,10 +68,10 @@ def analysis():
         dis = abs(int(en) - int(fr))
         dis_for = (int(en) * alpha + int(fr) * alpha) /2
         if (dis > dis_for):
-            print int(en),int(fr)
+            print(int(en),int(fr))
             count += 1
         dislist.append(dis)
-    print count
+    print(count)
     # plt.plot(x,dislist,'r')
     # plt.show()
 

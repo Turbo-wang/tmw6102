@@ -88,6 +88,72 @@ def generate_pairs(file_name):
                     f.write(fr_web)
                     f.write('\n')
 
+def load_translation(file_name):
+    url_dict = {}
+    domain  = file_name[:-8]
+    print domain
+    with open('../data/en_train_trans.out') as en_train_trans:
+        flag = False
+        lines = en_train_trans.readlines()
+        for url, text in zip(lines[::2],lines[1::2]):
+            url = url.strip()
+            text = text.strip()
+            # line_url = en_train_trans.readline()
+            # # print line_url
+            # line_text = en_train_trans.readline()
+            if re.search(domain, url) != None:
+                url_dict[url] = process_sentence.tokenize_text(text)
+            #     flag = True
+            #     # print line_url, files_name
+            # elif flag == True:
+            #     break
+    # print url_dict
+    return url_dict
+
+def bleu_test():
+    files_list = [f for f in listdir(corpora_dir) if isfile(join(corpora_dir, f)) and (f.endswith('lett') or f.endswith('gz'))]
+    match_url = []
+    count = 0
+    with open('../data/train.pairs') as pairs:
+        for pair in pairs:
+            match_url.append(pair)
+    predict_file = open('../data/predict_unlimit.pairs','w')
+
+    for file_name in files_list[:1]: 
+        url_text_trans = load_translation(file_name)  
+        print file_name,len(url_text_trans) 
+        dict_url_text, dict_url_en, dict_url_fr = extract_domain(file_name)
+        en_text_list = []
+        print 'extract ok'
+        reference_list = []
+        time_start = time.time()
+        for url in dict_url_fr:
+            pos = -1
+            score_list = []
+            text = url_text_trans[url]
+            for en_url in dict_url_en:
+                en_text = process_sentence.tokenize_text(dict_url_text[en_url])
+                # print en_text
+                score_list.append(sentence_bleu(en_text, text))
+            print max(score_list)
+            pos = score_list.index(max(score_list))
+            # if pos >= len(dict_url_en):
+            #     print "pos error at", url,'\t',en_url
+            #     continue
+            # if pos < 0:
+            #     print 'pos < 0 at', url,'\t',en_url
+            en_url_pred = dict_url_en[pos]
+            pre = str(en_url_pred) + '\t' + str(url)
+            print pre
+            predict_file.write(pre)
+            predict_file.write('\n')
+            if pre in match_url:
+                count +=1
+        time_end = time.time()
+        print (time_end - time_start),'for',file_name,'\t',count
+    predict_file.close()
+    print count
+
 def decode_file(file):
     fh = file
     flag = False
