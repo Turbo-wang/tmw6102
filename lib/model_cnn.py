@@ -201,7 +201,7 @@ def get_nn_model():
     model_fr = Sequential()
     model_fr.add(Embedding(max_features,
                     embedding_dims,
-                    input_length=maxlen,
+                    input_length=word_len,
                     dropout=0.2))
     model_fr.add(Convolution1D(nb_filter=nb_filter,
                             filter_length=filter_length,
