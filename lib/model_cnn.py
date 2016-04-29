@@ -152,8 +152,8 @@ def prapare_train():
 
 def train_model():
     # (X_train, Y_train, X_test, Y_test) = prapare_train()
-    # with open('../data/train_matrix.out') as train_file:
-    #     X_train = pickle.load(train_file)
+    with open('../data/train_matrix.out') as train_file:
+        X_train = json.load(train_file)
     # X_test = pickle.load('../data/test_matrix.out')
     Y_train = [1,0,0]*3
     # Y_test = [1,0,0]*3
