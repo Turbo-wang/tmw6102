@@ -222,4 +222,5 @@ def get_nn_model():
     return final_model
 
 if __name__ == '__main__':
-    prapare_train()
+    #prapare_train()
+    train_model()
