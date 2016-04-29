@@ -22,8 +22,8 @@ import utils.train_utils
 import utils.process_sentence as process_sentence
 
 max_features = 5000
-word_len = 10000
-# maxlen = 10000
+word_len = 1000
+maxlen = 1000
 batch_size = 32
 embedding_dims = 200
 nb_filter = 250
@@ -181,7 +181,7 @@ def get_nn_model():
     model_en = Sequential()
     model_en.add(Embedding(max_features,
                     embedding_dims,
-                    input_length=maxlen,
+                    input_length=word_len,
                     dropout=0.2))
     model_en.add(Convolution1D(nb_filter=nb_filter,
                             filter_length=filter_length,
