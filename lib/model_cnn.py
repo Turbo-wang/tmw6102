@@ -155,25 +155,25 @@ def train_model():
     # with open('../data/train_matrix.out') as train_file:
     #     X_train = pickle.load(train_file)
     # X_test = pickle.load('../data/test_matrix.out')
-    Y_train = [1,0,0]*1300
-    Y_test = [1,0,0]*324
-    print len(X_train) - len(Y_train)
+    Y_train = [1,0,0]*3
+    # Y_test = [1,0,0]*3
+    # print len(X_train) - len(Y_train)
     # print len(X_test) - len(Y_test)
-    # model = Sequential()
-    # model = get_nn_model()
-    # model.compile(loss='binary_crossentropy',
-    #             optimizer='adam',
-    #             metrics=['accuracy'])
+    model = Sequential()
+    model = get_nn_model()
+    model.compile(loss='binary_crossentropy',
+                optimizer='adam',
+                metrics=['accuracy'])
     # model.fit(X_train, Y_train,
     #       batch_size=batch_size,
     #       nb_epoch=nb_epoch,
     #       validation_data=(X_test, Y_test))
 #2
-    # model.fit(X_train, Y_train,
-    #       batch_size=batch_size,
-    #       nb_epoch=nb_epoch,
-    #       validation__split = 0.2)
-    # print 'ok'
+    model.fit(X_train, Y_train,
+          batch_size=batch_size,
+          nb_epoch=nb_epoch,
+          validation__split = 0.2)
+    print 'ok'
 
 def get_nn_model():
     # (X_train, Y_train, X_test, Y_test) = prapare_train()
